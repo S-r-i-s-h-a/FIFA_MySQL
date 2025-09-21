@@ -155,7 +155,20 @@ rank() over (order by avg(datediff(now(),e2.joining_date)) desc) as dept_rnk
 group by e2.department) as dept_avg_exp on e.department = dept_avg_exp.dept
 order by dept_avg_exp.avg_dept_exp desc;
 
+-- Rank project managers based on number of employees under them and rank employees
+-- within project based on salary
 
+select dept_head_id, dept_name, dept_head_name,emp_cnt,proj_man_rnk, emp_id, trim(first_name) as name, salary,
+dense_rank() over (partition by department order by salary desc) as emp_rnk
+from employees join (select dept_head_id,dept_name,dept_head_name, count(emp_id) as emp_cnt,
+dense_rank() over (order by count(emp_id) desc) as proj_man_rnk
+from departments join employees on dept_name=department 
+group by department) as emp_cnt
+on department=emp_cnt.dept_name
+order by proj_man_rnk;
+
+
+select department, count(emp_id) as emp_id from employees group by department;
 -- 1.Write a CTE that retrieves employees along with their department and project details.
 
 with emp_project_details as 
